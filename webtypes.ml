@@ -5,19 +5,19 @@
 
 Type definitions and important modules used throughout this problem set. Defines
 
-  -  a type "link" to represent an internet link, 
-  -  a type "page" to represent a webpage, 
+  -  a type "link" to represent an internet link,
+  -  a type "page" to represent a webpage,
   -  a module LinkSet (created using the set functor you'll write in myset.ml)
      representing a set of links.
 
  *)
 
-module M = Myset ;; 
+module M = Myset ;;
 
 (*----------------------------------------------------------------------
   Links
  *)
-   
+
 type link = { host : string ;  (* e.g., "www.eecs.harvard.edu" *)
               port : int ;     (* e.g., 80 *)
               path : string    (* e.g., "/~somebody/index.html" *)
@@ -35,7 +35,7 @@ let link_compare (x:link) (y:link) : Order.ordering =
   match Order.string_compare x.host y.host with
   | Equal ->
      (match Order.int_compare x.port y.port with
-      | Equal -> 
+      | Equal ->
           (match Order.string_compare x.path y.path with
            | Equal -> Equal
            | ans -> ans)
@@ -45,8 +45,8 @@ let link_compare (x:link) (y:link) : Order.ordering =
 (*......................................................................
   LinkSet
  *)
-  
-module LinkSet = 
+
+module LinkSet =
   M.Make (struct
     type t = link
     let compare = link_compare
@@ -63,17 +63,17 @@ module LinkSet =
 
   Now we can create the index of links. The LinkIndex is actually a
   dictionary mapping words to LinkSets. The links appear in a words
-  LinkSet are links to web-pages that reference that word 
+  LinkSet are links to web-pages that reference that word
  *)
 
-module LinkIndex = 
+module LinkIndex =
   Dict.Make (struct
     type key = string
     type value = LinkSet.set
     let compare = Order.string_compare
     let string_of_key = (fun s -> s)
     let string_of_value = LinkSet.string_of_set
-          
+
     (* These functions are for testing purposes *)
     let gen_key () = ""
     let gen_key_gt _ = gen_key ()

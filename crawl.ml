@@ -31,15 +31,13 @@ module PR = Pagerank ;;
    the frontier is empty.
  *)
 
-let crawl (_n : int)
-          (_frontier : WT.LinkSet.set)
-          (_visited : WT.LinkSet.set)
-          (_d : WT.LinkIndex.dict)
+let crawl (n : int)
+          (frontier : WT.LinkSet.set)
+          (visited : WT.LinkSet.set)
+          (d : WT.LinkIndex.dict)
         : WT.LinkIndex.dict =
-  (* For the time being, we do no crawling and just return the empty
-     dictionary. To eliminate compiler warnings, we temporarily name
-     the argument variables as anonymous variables.*)
-  WT.LinkIndex.empty ;;
+  WT.LinkSet.fold
+  ;;
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =
   crawl num_pages_to_search
