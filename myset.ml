@@ -259,25 +259,47 @@ module ListSet (C: COMPARABLE) : (SET with type elt = C.t) =
   updating the definition of the Make functor below.
 *)
 module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
-    ListSet(C)
 
    struct
     module D = Dict.Make(struct
         type key = int
-        type value = elt array
+        type value = C.t array
 
         let compare x y = if x < y then Less
           else if x >y then Greater else Equal
         let string_of_key = string_of_int
         let string_of_value v = Array.fold_right
           (fun a b -> C.string_of_t a ^ " | " ^ b) v ""
-        let gen_key = 26
+        let gen_key () = Hashtbl.hash 26
+        let gen_key_random () =
+          Random.self_init(); Hashtbl.hash (Random.int 100)
+        let gen_key_gt x = x + 1
+        let gen_key_lt x = x - 1
+        let gen_key_between x y =
+          if x = y then None
+          else
+            let min, max = min x y, max x y in
+            Random.self_init (); Some ((Random.int min) + 1)
+        let gen_value () = Array.make 0 (C.gen ())
+        let gen_pair () =
+          Random.self_init;
+          let key = Hashtbl.hash (Random.int 100) in
+          (key, Array.make 0 C.(gen ()))
+
 
       end)
 
-    type elt = D.key
+    type elt = C.t
     type set = D.dict
-    let empty = ???
+    let empty = D.empty
+    let is_empty x = (x = D.empty)
+    let singleton x = Array.make 1 x
+    let insert s e =
+      let hash = Hashtbl.hash e in
+      let look = D.lookup s hash in
+      match look with
+      | None -> D.insert s hash (Array.make 1 e)
+      | Some b -> D.insert s hash (Array.append b (singleton e))
 
     (* implement the rest of the functions in the signature! *)
 
@@ -305,7 +327,7 @@ module IntListSet = ListSet(IntComparable) ;;
 (* Create a set of ints using the DictSet functor and test it.
 
    Uncomment out the lines below when you are ready to test your set
-   implementation based on dictionaries. *)
+   implementation based on dicctionaries. *)
 
 (*
 module IntDictSet = DictSet(IntComparable) ;;
