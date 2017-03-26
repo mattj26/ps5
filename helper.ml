@@ -2,7 +2,8 @@
                                 Helper functions for
                                 CS51 Problem Set 5
 *)
-  module WT = Webtypes;;
+module WT = Webtypes;;
+exception Crawler_Error of string;;
 
 let add_key_pairs (words : string list)
                   (url : WT.LinkSet.elt)
@@ -16,6 +17,11 @@ let add_key_pairs (words : string list)
       | Some s ->
           let newS = WT.LinkSet.insert s url in
           WT.LinkIndex.insert d w newS) words dict;;
+
+let unwrap (op : 'a option) (erText : string) =
+  match op with
+  | None -> raise (Crawler_Error erText)
+  | Some x -> x;;
 
 
 

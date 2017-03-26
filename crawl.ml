@@ -30,7 +30,6 @@ module PR = Pagerank ;;
    Keep crawling until we've reached the maximum number of links (n) or
    the frontier is empty.
  *)
-
 let crawl (n : int)
           (frontier : WT.LinkSet.set)
           (visited : WT.LinkSet.set)
@@ -45,15 +44,19 @@ let crawl (n : int)
     then
       dict
     else
-      let Some (link, setRem) = WT.LinkSet.choose fRem in
-      let Some {WT.url = url; links; words} = CS.get_page link in
-      inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
-      (Helper.add_key_pairs words url dict) (count + 1) in
+      let link, setRem =
+        Helper.unwrap (WT.LinkSet.choose fRem)
+        "Link selection returns empty" in
+      if WT.LinkSet.member vis link
+      then
+        inner_crawl setRem vis dict count
+      else
+        let {WT.url = url; links; words} =
+        Helper.unwrap(CS.get_page link)
+        "Page lookup returns empty" in
+        inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
+        (Helper.add_key_pairs words url dict) (count + 1) in
     inner_crawl frontier visited d 0;;
-
-
-
-
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =
   crawl num_pages_to_search
