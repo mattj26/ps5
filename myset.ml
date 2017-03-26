@@ -260,10 +260,19 @@ module ListSet (C: COMPARABLE) : (SET with type elt = C.t) =
 *)
 module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     ListSet(C)
-(*
-    struct
+
+   struct
     module D = Dict.Make(struct
-        (* fill this in! *)
+        type key = int
+        type value = elt array
+
+        let compare x y = if x < y then Less
+          else if x >y then Greater else Equal
+        let string_of_key = string_of_int
+        let string_of_value v = Array.fold_right
+          (fun a b -> C.string_of_t a ^ " | " ^ b) v ""
+        let gen_key = 26
+
       end)
 
     type elt = D.key
@@ -284,8 +293,6 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     let run_tests () =
       ()
 end
-*)
-
 (*----------------------------------------------------------------------
   Running the tests.
  *)
