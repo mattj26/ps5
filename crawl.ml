@@ -36,8 +36,24 @@ let crawl (n : int)
           (visited : WT.LinkSet.set)
           (d : WT.LinkIndex.dict)
         : WT.LinkIndex.dict =
-  WT.LinkSet.fold
-  ;;
+  let rec inner_crawl (fRem : WT.LinkSet.set)
+                  (vis : WT.LinkSet.set)
+                  (dict : WT.LinkIndex.dict)
+                  (count: int)
+                : WT.LinkIndex.dict =
+    if count > n || WT.LinkSet.is_empty fRem
+    then
+      dict
+    else
+      let Some (link, setRem) = WT.LinkSet.choose fRem in
+      let Some {WT.url = url; links; words} = CS.get_page link in
+      inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
+      (Helper.add_key_pairs words url dict) (count + 1) in
+    inner_crawl frontier visited d 0;;
+
+
+
+
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =
   crawl num_pages_to_search

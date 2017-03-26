@@ -147,7 +147,7 @@ module ListSet (C: COMPARABLE) : (SET with type elt = C.t) =
     let rec remove xs y =
       match xs with
       | [] -> []
-      | x :: xs1 -> 
+      | x :: xs1 ->
           match C.compare y x with
           | Equal -> xs1
           | Less -> xs
@@ -157,7 +157,7 @@ module ListSet (C: COMPARABLE) : (SET with type elt = C.t) =
       match xs, ys with
       | [], _ -> []
       | _, [] -> []
-      | xh :: xt, yh :: yt -> 
+      | xh :: xt, yh :: yt ->
           match C.compare xh yh with
           | Equal -> xh :: (intersect xt yt)
           | Less -> intersect xt ys
