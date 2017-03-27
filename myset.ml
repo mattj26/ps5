@@ -306,7 +306,9 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       let look = D.lookup s hash in
       match look with
       | None -> D.insert s hash [e]
-      | Some b -> D.insert s hash (e::b)
+      | Some b -> if List.mem e b
+                  then s
+                  else D.insert s hash (e::b)
     let insert_key_list keys dict =
       List.fold_right (fun k d -> insert d k) keys dict
     let union s1 s2 =
@@ -351,7 +353,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
             let ele, lstNew = Sethelper.remove_return_list lst in
             Some (ele, D.insert d k lstNew)
     let fold f u s =
-      D.fold (fun _ _ vals -> List.fold_left f u vals) u s
+      D.fold (fun b _ vals -> List.fold_left f b vals) u s
 
     let string_of_elt = C.string_of_t
     let string_of_set s = D.string_of_dict s
@@ -434,9 +436,45 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       assert (compare_sets s3 (set_from_list l3));
       print_endline "Test intersect passed"
 
-      let test_remove () =
-        let vals = element_list_to 6
+    let test_remove () =
+      let vals = element_list_to 6 in
+      let s1 = List.fold_right (fun e s -> insert s e) vals empty in
+      let x0 = C.gen () in
+      let x1 = C.gen_gt x0 in
+      let xn = C.gen_lt x0 in
+      let f x y = remove y x in
+      f x0 s1 |> f xn |> f x1 |> ignore
 
+    let test_member () =
+      let vals1 = element_list_to 10 in
+      let vals2 = element_list_to 8 in
+      let s1 = set_from_list vals2 in
+      assert (member s1 (List.nth vals1 0) &&
+              member s1 (List.nth vals1 1) &&
+              not (member s1 (List.nth vals1 8)) &&
+              not (member s1 (List.nth vals1 9)));
+      tp "Test member passed"
+
+    let test_choose () =
+      let vals = element_list_to 15 in
+      let s0 = set_from_list vals in
+      match choose s0 with
+      | None -> assert (false)
+      | Some (e1, s1) ->
+          (match choose s1 with
+          | None -> assert (false)
+          | Some (e2, s2) ->
+              let f x y = insert y x in
+              let s3 = empty |> f e1 |> f e2 in
+              assert (compare_sets (union s2 s3) s0 &&
+                      compare_sets (intersect s3 s2) empty);
+              tp "Test choose passed")
+
+    let test_fold () =
+      let vals = element_list_to 7 in
+      let s0 = set_from_list vals in
+      let total = fold (fun x y ->C.string_of_t y ^ "-->" ^ x) "" s0 in
+      print_endline total
 
     let recursion_doer (f : 'a -> elt) (size : int) : elt list =
       let rec inner_rec (count : int) : elt list =
@@ -453,7 +491,11 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     let run_tests () =
       test_is_empty ();
       test_insert (random_element_list 8);
-      test_intersect ()
+      test_intersect ();
+      test_remove ();
+      test_member ();
+      test_choose ();
+      test_fold ()
 
 
 end

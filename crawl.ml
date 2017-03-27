@@ -54,9 +54,11 @@ let crawl (n : int)
         let {WT.url = url; links; words} =
         Helper.unwrap(CS.get_page link)
         "Page lookup returns empty" in
+        print_endline ("Now crawling: " ^ (WT.LinkSet.string_of_elt url));
         inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
         (Helper.add_key_pairs words url dict) (count + 1) in
     inner_crawl frontier visited d 0;;
+
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =
   crawl num_pages_to_search
