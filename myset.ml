@@ -402,11 +402,14 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     let keys_values_list (s : set) : (D.key * D.value) list =
       D.fold (fun lst k v -> (k, v) :: lst) [] s
 
-    let compare_sets (s1 : set) (s2 : set) : bool  =
-            List.fold_right (fun ele b2 ->
-                                List.mem ele lst && b2) lst true) true x in
-      compare_one s1 s2 && compare_one s2 s1
+    let compare_lists (lst1 : (D.key * D.value) list)
+                      (lst2 : (D.key * D.value) list)
+                    : bool  =
+      let compare_one x y = List.for_all (fun e -> List.mem e y) x in
+      compare_one lst1 lst2 && compare_one lst2 lst1
 
+    let compare_sets (s1 : set) (s2 :set) : bool =
+      compare_lists (keys_values_list s1) (keys_values_list s2)
 
     let overlapping_element_lists (iniSize : int) : elt list * elt list =
       let lst1 = element_list_to iniSize in
@@ -430,6 +433,9 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
                   else res) l1 [] in
       assert (compare_sets s3 (set_from_list l3));
       print_endline "Test intersect passed"
+
+      let test_remove () =
+        let vals = element_list_to 6
 
 
     let recursion_doer (f : 'a -> elt) (size : int) : elt list =
