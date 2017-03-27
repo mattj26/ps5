@@ -272,7 +272,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           else if x >y then Greater else Equal
         let string_of_key = string_of_int
         let string_of_value v = List.fold_right
-          (fun a b -> C.string_of_t a ^ " | " ^ b) v ""
+          (fun a b -> C.string_of_t a ^ " -> " ^ b) v "" |> String.trim
         let gen_key () = Hashtbl.hash 26
         let gen_key_random () =
           Random.self_init(); Hashtbl.hash (Random.int 100)
@@ -282,7 +282,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           if x = y then None
           else
             let min, max = min x y, max x y in
-            Random.self_init (); Some ((Random.int min) + 1)
+            Random.self_init (); Some (Random.int (max - min - 1) + min + 1)
         let gen_value () = []
         let gen_pair () =
           Random.self_init ();
@@ -296,7 +296,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     type set = D.dict
     let empty = D.empty
     let is_empty x = (x = D.empty)
-    let singleton x = [x]
+    let singleton x = D.insert empty (Hashtbl.hash x) [x]
     let hash_and_lookup s e =
       let hash = Hashtbl.hash e in
       let look = D.lookup s hash in
@@ -310,7 +310,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     let insert_key_list keys dict =
       List.fold_right (fun k d -> insert d k) keys dict
     let union s1 s2 =
-      D.fold (fun d k v -> insert_key_list v d) s1 s2
+      D.fold (fun d _ v -> insert_key_list v d) s1 s2
     let intersect s1 s2 =
       D.fold (fun d k v ->
                 let look = D.lookup s2 k in
@@ -321,7 +321,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
                       (fun ele res ->
                         if List.mem ele lst
                         then insert res ele
-                        else res) lst d) empty s1
+                        else res) v d) empty s1
     let remove s e =
       let hash = Hashtbl.hash e in
       let look = D.lookup s hash in
@@ -332,36 +332,28 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           then
             if List.length lst = 1
             then D.remove s hash
-            else D.insert s hash (Helper.remove_list e lst)
+            else D.insert s hash (Sethelper.remove_list e lst)
           else
             s
     let member s e =
       let _, look = hash_and_lookup s e in
       match look with
       | None -> false
-      | Some lst -> List.mem lst e
+      | Some lst -> List.mem e lst
     let choose s =
       let look = D.choose s in
       match look with
       | None -> raise (Empty_Set "Can't choose from an empty set")
       | Some (k, lst, d) ->
           if List.length lst = 1
-          then (List.hd lst, d)
+          then Some (List.hd lst, d)
           else
-            let ele, lstNew = Helper.remove_return_list lst in
-            (ele, D.insert d k lstNew)
+            let ele, lstNew = Sethelper.remove_return_list lst in
+            Some (ele, D.insert d k lstNew)
+    let fold f u s =
+      D.fold (fun _ _ vals -> List.fold_left f u vals) u s
 
-
-
-
-
-
-
-
-
-    (* implement the rest of the functions in the signature! *)
-
-    let string_of_elt = D.string_of_key
+    let string_of_elt = C.string_of_t
     let string_of_set s = D.string_of_dict s
 
     (* Tests for the DictSet functor -- Use the tests from the ListSet
@@ -369,9 +361,95 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
        write a lot more comprehensive tests to test ALL your
        functions. *)
 
+    let tp = print_endline
+
+    let set_from_list (lst : elt list) : set =
+      List.fold_right (fun ele s -> insert s ele) lst empty
+
+    let test_is_empty () : unit =
+      let emp = empty in
+      assert (is_empty emp);
+      tp "Test is empty passed"
+
+    let test_insert (lst : elt list) : unit =
+      let s1 = List.fold_right (fun ele s -> insert s ele) lst empty in
+      List.iter (fun e -> assert (member s1 e)) lst;
+      tp "Test insert passed"
+
+    let test_union (lst1 : elt list) (lst2 : elt list) : unit =
+      let s1, s2 = set_from_list lst1, set_from_list lst2 in
+      let s3 = union s1 s2 in
+      print_endline (string_of_set s1);
+      print_endline (string_of_set s2);
+      print_endline (string_of_set s3)
+(*
+    let test_intersect (lst1 : elt list) (lst2 : elt list) : unit =
+      print_endline string_of_set (singleton C.gen) *)
+
+
+    let element_list_to (max : int) : elt list =
+      let rec inner (count : int) (last : elt) : elt list =
+      (if count < max
+      then
+        let cur = C.gen_gt last in
+        cur :: inner (count + 1) cur
+      else []) in
+        inner 0 (C.gen ())
+
+    let print_set (s : set) : unit =
+      print_endline (string_of_set s)
+
+    let keys_values_list (s : set) : (D.key * D.value) list =
+      D.fold (fun lst k v -> (k, v) :: lst) [] s
+
+    let compare_sets (s1 : set) (s2 : set) : bool  =
+            List.fold_right (fun ele b2 ->
+                                List.mem ele lst && b2) lst true) true x in
+      compare_one s1 s2 && compare_one s2 s1
+
+
+    let overlapping_element_lists (iniSize : int) : elt list * elt list =
+      let lst1 = element_list_to iniSize in
+      Random.self_init ();
+      List.fold_right
+        (fun e (lst2, lst3) ->
+          let num = Random.int 12 in
+          match num with
+          | 0 | 1 | 2 -> e :: lst2, lst3
+          | 9 | 10 | 11 -> lst2, e :: lst3
+          | _ -> e :: lst2, e :: lst3) lst1 ([], [])
+
+    let test_intersect () =
+      let l1, l2 = overlapping_element_lists 12 in
+      let s1, s2 = set_from_list l1, set_from_list l2 in
+      let s3 = intersect s1 s2 in
+      let l3 = List.fold_right
+                (fun ele res ->
+                  if List.mem ele l2
+                  then ele :: res
+                  else res) l1 [] in
+      assert (compare_sets s3 (set_from_list l3));
+      print_endline "Test intersect passed"
+
+
+    let recursion_doer (f : 'a -> elt) (size : int) : elt list =
+      let rec inner_rec (count : int) : elt list =
+        (if count < size
+        then f () :: inner_rec (count + 1)
+        else []) in
+      inner_rec 0
+
+    let random_element_list (size : int) : elt list =
+      recursion_doer C.gen_random size
+
+
     (* Add your test functions to run_tests *)
     let run_tests () =
-      ()
+      test_is_empty ();
+      test_insert (random_element_list 8);
+      test_intersect ()
+
+
 end
 (*----------------------------------------------------------------------
   Running the tests.
@@ -387,11 +465,12 @@ module IntListSet = ListSet(IntComparable) ;;
    Uncomment out the lines below when you are ready to test your set
    implementation based on dicctionaries. *)
 
-(*
+
 module IntDictSet = DictSet(IntComparable) ;;
 
 let _ = IntDictSet.run_tests();;
- *)
+
+
 
 (*----------------------------------------------------------------------
   Make -- a functor that creates a set module by calling the ListSet
@@ -403,5 +482,4 @@ let _ = IntDictSet.run_tests();;
 module Make (C : COMPARABLE) : (SET with type elt = C.t) =
   (* Change this line to use the dictionary implementation of sets
      when you are finished. *)
-  ListSet (C)
-  (* DictSet (C) *)
+   DictSet (C)
