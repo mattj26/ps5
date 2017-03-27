@@ -258,17 +258,20 @@ module ListSet (C: COMPARABLE) : (SET with type elt = C.t) =
   working, you can use it instead of the ListSet implementation by
   updating the definition of the Make functor below.
 *)
+
+exception Empty_Set of string;;
+
 module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
 
    struct
     module D = Dict.Make(struct
         type key = int
-        type value = C.t array
+        type value = C.t list
 
         let compare x y = if x < y then Less
           else if x >y then Greater else Equal
         let string_of_key = string_of_int
-        let string_of_value v = Array.fold_right
+        let string_of_value v = List.fold_right
           (fun a b -> C.string_of_t a ^ " | " ^ b) v ""
         let gen_key () = Hashtbl.hash 26
         let gen_key_random () =
@@ -280,11 +283,11 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           else
             let min, max = min x y, max x y in
             Random.self_init (); Some ((Random.int min) + 1)
-        let gen_value () = Array.make 0 (C.gen ())
+        let gen_value () = []
         let gen_pair () =
-          Random.self_init;
+          Random.self_init ();
           let key = Hashtbl.hash (Random.int 100) in
-          (key, Array.make 0 C.(gen ()))
+          (key, [])
 
 
       end)
@@ -293,13 +296,68 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     type set = D.dict
     let empty = D.empty
     let is_empty x = (x = D.empty)
-    let singleton x = Array.make 1 x
+    let singleton x = [x]
+    let hash_and_lookup s e =
+      let hash = Hashtbl.hash e in
+      let look = D.lookup s hash in
+      (hash, look)
     let insert s e =
       let hash = Hashtbl.hash e in
       let look = D.lookup s hash in
       match look with
-      | None -> D.insert s hash (Array.make 1 e)
-      | Some b -> D.insert s hash (Array.append b (singleton e))
+      | None -> D.insert s hash [e]
+      | Some b -> D.insert s hash (e::b)
+    let insert_key_list keys dict =
+      List.fold_right (fun k d -> insert d k) keys dict
+    let union s1 s2 =
+      D.fold (fun d k v -> insert_key_list v d) s1 s2
+    let intersect s1 s2 =
+      D.fold (fun d k v ->
+                let look = D.lookup s2 k in
+                match look with
+                | None -> d
+                | Some lst ->
+                    List.fold_right
+                      (fun ele res ->
+                        if List.mem ele lst
+                        then insert res ele
+                        else res) lst d) empty s1
+    let remove s e =
+      let hash = Hashtbl.hash e in
+      let look = D.lookup s hash in
+      match look with
+      | None -> s
+      | Some lst ->
+          if List.mem e lst
+          then
+            if List.length lst = 1
+            then D.remove s hash
+            else D.insert s hash (Helper.remove_list e lst)
+          else
+            s
+    let member s e =
+      let _, look = hash_and_lookup s e in
+      match look with
+      | None -> false
+      | Some lst -> List.mem lst e
+    let choose s =
+      let look = D.choose s in
+      match look with
+      | None -> raise (Empty_Set "Can't choose from an empty set")
+      | Some (k, lst, d) ->
+          if List.length lst = 1
+          then (List.hd lst, d)
+          else
+            let ele, lstNew = Helper.remove_return_list lst in
+            (ele, D.insert d k lstNew)
+
+
+
+
+
+
+
+
 
     (* implement the rest of the functions in the signature! *)
 
