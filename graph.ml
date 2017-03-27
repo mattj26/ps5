@@ -145,7 +145,6 @@ module Graph (NA : NODE) : (GRAPH with module N = NA) =
       match EdgeDict.lookup g.edges n with
       | None -> None
       | Some s ->
-          print_endline (NeighborSet.string_of_set s);
           Some (NeighborSet.fold (fun r neigh -> neigh :: r) [] s) ;;
 
     let outgoing_edges g src : (node * node) list option =

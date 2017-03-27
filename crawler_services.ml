@@ -8,7 +8,7 @@ Interface and implementation of crawler services needed to build
 the web index, including definitions of link and page datatypes, a
 function for fetching a page given a link, and the values of the
 command line arguments (the initial link, the number of pages to
-search, and the server port).  
+search, and the server port).
  *)
 
 module PR = Pagerank ;;
@@ -125,6 +125,7 @@ let get_words (page : string) : string list =
 
 (* get_page link -- Attempts to get the page at the provided link. *)
 let get_page (link : WT.link) : WT.page option =
+  Printf.printf "Getting page for link: %s\n" (WT.string_of_link link);
   match HS.fetch_url link crawl_internet with
     None -> None
   | Some page ->
@@ -147,7 +148,7 @@ let compute_pagerank (index : WT.LinkIndex.dict) : PR.RankDict.dict =
 ;;
 
 (*......................................................................
-Command-line processing and initializing the cralwler configuration 
+Command-line processing and initializing the cralwler configuration
 
 Read the command line arguments and return the port number which the
 server should use for serving, the number of pages to index, and the
@@ -161,7 +162,7 @@ let (server_port, num_pages_to_search, root_url) =
     let root_url = Array.get args 3 in
     (port, num, root_url)
   with
-    _ -> 
+    _ ->
       Printf.printf "usage: %s <port> <num-pages> <root-url>\n"
         (Array.get args 0) ;
       Printf.printf ("running with defaults.\n");

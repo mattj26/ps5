@@ -302,6 +302,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       let look = D.lookup s hash in
       (hash, look)
     let insert s e =
+      print_endline (C.string_of_t e);
       let hash = Hashtbl.hash e in
       let look = D.lookup s hash in
       match look with
