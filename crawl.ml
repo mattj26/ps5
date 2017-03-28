@@ -40,24 +40,27 @@ let crawl (n : int)
                   (dict : WT.LinkIndex.dict)
                   (count: int)
                 : WT.LinkIndex.dict =
-    if count > n || WT.LinkSet.is_empty fRem
+
+    Printf.printf "Size of visited set: %i\n" (Helper.size_of_set vis);
+    Printf.printf "Size of frontier: %i\n" (Helper.size_of_set fRem);
+    if count >= n || WT.LinkSet.is_empty fRem
     then
       dict
     else
       let link, setRem =
         Helper.unwrap (WT.LinkSet.choose fRem)
         "Link selection returns empty" in
+      Printf.printf "Site about to search %s: \n\n\n" (WT.string_of_link link);
       if WT.LinkSet.member vis link
-      then
-        inner_crawl setRem vis dict count
+      then inner_crawl setRem vis dict count
       else
-        let {WT.url = url; links; words} =
-        Helper.unwrap(CS.get_page link)
-        "Page lookup returns empty" in
-        print_endline ("Now crawling: " ^ (WT.LinkSet.string_of_elt url));
-        inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
-        (Helper.add_key_pairs words url dict) (count + 1) in
-    inner_crawl frontier visited d 0;;
+        let search = CS.get_page link in
+        match search with
+        | None -> inner_crawl setRem (WT.LinkSet.insert vis link) dict count
+        | Some {WT.url = url; links; words} ->
+            inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
+            (Helper.add_key_pairs words url dict) (count + 1) in
+      inner_crawl frontier visited d 0;;
 
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =

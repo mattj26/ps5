@@ -125,7 +125,6 @@ let get_words (page : string) : string list =
 
 (* get_page link -- Attempts to get the page at the provided link. *)
 let get_page (link : WT.link) : WT.page option =
-  Printf.printf "Getting page for link: %s\n" (WT.string_of_link link);
   match HS.fetch_url link crawl_internet with
     None -> None
   | Some page ->

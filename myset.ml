@@ -302,7 +302,6 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       let look = D.lookup s hash in
       (hash, look)
     let insert s e =
-      print_endline (C.string_of_t e);
       let hash = Hashtbl.hash e in
       let look = D.lookup s hash in
       match look with
@@ -531,4 +530,4 @@ let _ = IntDictSet.run_tests();;
 module Make (C : COMPARABLE) : (SET with type elt = C.t) =
   (* Change this line to use the dictionary implementation of sets
      when you are finished. *)
-   DictSet (C)
+   ListSet (C)
