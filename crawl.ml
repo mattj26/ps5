@@ -42,7 +42,8 @@ let crawl (n : int)
                 : WT.LinkIndex.dict =
 
     Printf.printf "Size of visited set: %i\n" (Helper.size_of_set vis);
-    Printf.printf "Size of frontier: %i\n" (Helper.size_of_set fRem);
+    Printf.printf "Size of frontier: %i\nNumber of\
+      Actually Indexed Sites: %i\n" (Helper.size_of_set fRem) count;
     if count >= n || WT.LinkSet.is_empty fRem
     then
       dict
@@ -55,9 +56,10 @@ let crawl (n : int)
       then inner_crawl setRem vis dict count
       else
         let search = CS.get_page link in
+        print_endline "Back to crawl";
         match search with
-        | None -> inner_crawl setRem (WT.LinkSet.insert vis link) dict count
-        | Some {WT.url = url; links; words} ->
+        | None -> print_endline "None"; inner_crawl setRem (WT.LinkSet.insert vis link) dict count
+        | Some {WT.url = url; links; words} -> print_endline "Some";
             inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
             (Helper.add_key_pairs words url dict) (count + 1) in
       inner_crawl frontier visited d 0;;

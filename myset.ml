@@ -273,9 +273,10 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
         let string_of_key = string_of_int
         let string_of_value v = List.fold_right
           (fun a b -> C.string_of_t a ^ " -> " ^ b) v "" |> String.trim
-        let gen_key () = Hashtbl.hash 26
+        let hash x = Hashtbl.hash x mod 3123
+        let gen_key () = hash 26
         let gen_key_random () =
-          Random.self_init(); Hashtbl.hash (Random.int 100)
+          Random.self_init(); hash (Random.int 100)
         let gen_key_gt x = x + 1
         let gen_key_lt x = x - 1
         let gen_key_between x y =
@@ -286,7 +287,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
         let gen_value () = []
         let gen_pair () =
           Random.self_init ();
-          let key = Hashtbl.hash (Random.int 100) in
+          let key = hash (Random.int 100) in
           (key, [])
 
 
@@ -296,13 +297,14 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     type set = D.dict
     let empty = D.empty
     let is_empty x = (x = D.empty)
-    let singleton x = D.insert empty (Hashtbl.hash x) [x]
+    let hash x = Hashtbl.hash x mod 3123
+    let singleton x = D.insert empty (hash x) [x]
     let hash_and_lookup s e =
-      let hash = Hashtbl.hash e in
+      let hash = hash e in
       let look = D.lookup s hash in
       (hash, look)
     let insert s e =
-      let hash = Hashtbl.hash e in
+      let hash = hash e in
       let look = D.lookup s hash in
       match look with
       | None -> D.insert s hash [e]
@@ -325,7 +327,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
                         then insert res ele
                         else res) v d) empty s1
     let remove s e =
-      let hash = Hashtbl.hash e in
+      let hash = hash e in
       let look = D.lookup s hash in
       match look with
       | None -> s
@@ -530,4 +532,4 @@ let _ = IntDictSet.run_tests();;
 module Make (C : COMPARABLE) : (SET with type elt = C.t) =
   (* Change this line to use the dictionary implementation of sets
      when you are finished. *)
-   ListSet (C)
+   DictSet (C)

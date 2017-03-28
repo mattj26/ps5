@@ -106,6 +106,7 @@ let get_links (source_link : WT.link) (page : string) : WT.LinkSet.set =
    we try to use regexps here, we'll get a stack overflow, so this
    is coded by hand. *)
 let get_words (page : string) : string list =
+  print_endline "Get words";
   let len = String.length page in
   let rec loop pos words =
     let rec find_end i =
@@ -125,6 +126,7 @@ let get_words (page : string) : string list =
 
 (* get_page link -- Attempts to get the page at the provided link. *)
 let get_page (link : WT.link) : WT.page option =
+  print_endline "Get page";
   match HS.fetch_url link crawl_internet with
     None -> None
   | Some page ->
