@@ -65,7 +65,7 @@ let crawl (n : int)
       dict
     else
       let link, setRem =
-        Helper.unwrap (WT.LinkSet.choose fRem)
+        unwrap (WT.LinkSet.choose fRem)
         "Link selection returns empty" in
       if WT.LinkSet.member vis link
       then inner_crawl setRem vis dict count
