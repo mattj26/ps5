@@ -326,6 +326,13 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
                         if List.mem ele lst
                         then insert res ele
                         else res) v d) empty s1
+    let rec remove_list (ele : 'a) (lst : 'a list) : 'a list =
+      match lst with
+      | [] -> []
+      | hd::tl ->
+        if ele = hd
+        then tl
+        else hd :: remove_list ele tl;;
     let remove s e =
       let hash = hash e in
       let look = D.lookup s hash in
@@ -336,7 +343,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           then
             if List.length lst = 1
             then D.remove s hash
-            else D.insert s hash (Sethelper.remove_list e lst)
+            else D.insert s hash (remove_list e lst)
           else
             s
     let member s e =
