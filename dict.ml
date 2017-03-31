@@ -206,7 +206,7 @@ module BSTDict (D : DICT_ARG) : (DICT with type key = D.key
          (match D.compare k k1 with
           | Equal -> T(dl, (k,v), dr)
           | Less -> T(insert dl k v, kv, dr)
-          | Greater -> T(dl, kv, insert dr k v)) ;;
+          | Greater ->T(dl, kv, insert dr k v)) ;;
 
     let rec max d =
       match d with

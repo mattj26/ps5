@@ -40,10 +40,6 @@ let crawl (n : int)
                   (dict : WT.LinkIndex.dict)
                   (count: int)
                 : WT.LinkIndex.dict =
-
-    Printf.printf "Size of visited set: %i\n" (Helper.size_of_set vis);
-    Printf.printf "Size of frontier: %i\nNumber of\
-      Actually Indexed Sites: %i\n" (Helper.size_of_set fRem) count;
     if count >= n || WT.LinkSet.is_empty fRem
     then
       dict
@@ -51,22 +47,24 @@ let crawl (n : int)
       let link, setRem =
         Helper.unwrap (WT.LinkSet.choose fRem)
         "Link selection returns empty" in
-      Printf.printf "Site about to search %s: \n\n\n" (WT.string_of_link link);
       if WT.LinkSet.member vis link
       then inner_crawl setRem vis dict count
       else
         let search = CS.get_page link in
-        print_endline "Back to crawl";
         match search with
-        | None -> print_endline "None"; inner_crawl setRem (WT.LinkSet.insert vis link) dict count
-        | Some {WT.url = url; links; words} -> print_endline "Some";
+        | None -> inner_crawl setRem (WT.LinkSet.insert vis link) dict count
+        | Some {WT.url = url; links; words} ->
             inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
             (Helper.add_key_pairs words url dict) (count + 1) in
       inner_crawl frontier visited d 0;;
 
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =
-  crawl num_pages_to_search
+  Gc.set { (Gc.get()) with Gc.stack_limit = 64 * 1024 * 1024};
+  let crawl_func = crawl num_pages_to_search
     (WT.LinkSet.singleton initial_link)
     WT.LinkSet.empty
-    WT.LinkIndex.empty ;;
+    in
+  let res, time = CS51.call_timed crawl_func WT.LinkIndex.empty in
+  print_float time; print_newline() ;
+  res;;
