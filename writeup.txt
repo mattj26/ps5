@@ -1,4 +1,7 @@
 
+These are timing results and analysis for the ListSet and DictSet.
+The analysis of the timing results is at the bottom.
+
 All times in msecs
 
 Timing results for "simple-html"
