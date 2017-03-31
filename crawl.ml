@@ -61,10 +61,7 @@ let crawl (n : int)
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =
   Gc.set { (Gc.get()) with Gc.stack_limit = 64 * 1024 * 1024};
-  let crawl_func = crawl num_pages_to_search
+  crawl num_pages_to_search
     (WT.LinkSet.singleton initial_link)
-    WT.LinkSet.empty
-    in
-  let res, time = CS51.call_timed crawl_func WT.LinkIndex.empty in
-  print_float time; print_newline() ;
-  res;;
+    WT.LinkSet.empty WT.LinkIndex.empty;;
+

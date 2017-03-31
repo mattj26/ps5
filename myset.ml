@@ -370,26 +370,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
     let set_from_list (lst : elt list) : set =
       List.fold_right (fun ele s -> insert s ele) lst empty
 
-    let test_is_empty () : unit =
-      let emp = empty in
-      assert (is_empty emp);
-      tp "Test is empty passed"
-
-    let test_insert (lst : elt list) : unit =
-      let s1 = List.fold_right (fun ele s -> insert s ele) lst empty in
-      List.iter (fun e -> assert (member s1 e)) lst;
-      tp "Test insert passed"
-
-    let test_union (lst1 : elt list) (lst2 : elt list) : unit =
-      let s1, s2 = set_from_list lst1, set_from_list lst2 in
-      let s3 = union s1 s2 in
-      print_endline (string_of_set s1);
-      print_endline (string_of_set s2);
-      print_endline (string_of_set s3)
-(*
-    let test_intersect (lst1 : elt list) (lst2 : elt list) : unit =
-      print_endline string_of_set (singleton C.gen) *)
-
+      (* Helper functions for testing *)
 
     let element_list_to (max : int) : elt list =
       let rec inner (count : int) (last : elt) : elt list =
@@ -400,11 +381,21 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       else []) in
         inner 0 (C.gen ())
 
+    let recursion_doer (f : 'a -> elt) (size : int) : elt list =
+      let rec inner_rec (count : int) : elt list =
+        (if count < size
+        then f () :: inner_rec (count + 1)
+        else []) in
+      inner_rec 0
+
     let print_set (s : set) : unit =
       print_endline (string_of_set s)
 
     let keys_values_list (s : set) : (D.key * D.value) list =
       D.fold (fun lst k v -> (k, v) :: lst) [] s
+
+    let random_element_list (size : int) : elt list =
+      recursion_doer C.gen_random size
 
     let compare_lists (lst1 : (D.key * D.value) list)
                       (lst2 : (D.key * D.value) list)
@@ -425,6 +416,26 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           | 0 | 1 | 2 -> e :: lst2, lst3
           | 9 | 10 | 11 -> lst2, e :: lst3
           | _ -> e :: lst2, e :: lst3) lst1 ([], [])
+
+    (* Test functions for DictSet *)
+
+    let test_is_empty () : unit =
+      let emp = empty in
+      assert (is_empty emp);
+      tp "Test is empty passed"
+
+    let test_insert (lst : elt list) : unit =
+      let s1 = List.fold_right (fun ele s -> insert s ele) lst empty in
+      List.iter (fun e -> assert (member s1 e)) lst;
+      tp "Test insert passed"
+
+    let test_union (lst1 : elt list) (lst2 : elt list) : unit =
+      let s1, s2 = set_from_list lst1, set_from_list lst2 in
+      let s3 = union s1 s2 in
+      print_endline (string_of_set s1);
+      print_endline (string_of_set s2);
+      print_endline (string_of_set s3)
+
 
     let test_intersect () =
       let l1, l2 = overlapping_element_lists 12 in
@@ -475,17 +486,6 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       let total = fold (fun x y ->C.string_of_t y ^ "-->" ^ x) "" s0 in
       ignore total;;
 
-    let recursion_doer (f : 'a -> elt) (size : int) : elt list =
-      let rec inner_rec (count : int) : elt list =
-        (if count < size
-        then f () :: inner_rec (count + 1)
-        else []) in
-      inner_rec 0
-
-    let random_element_list (size : int) : elt list =
-      recursion_doer C.gen_random size
-
-
     (* Add your test functions to run_tests *)
     let run_tests () =
       test_is_empty ();
@@ -529,4 +529,4 @@ let _ = IntDictSet.run_tests();;
 module Make (C : COMPARABLE) : (SET with type elt = C.t) =
   (* Change this line to use the dictionary implementation of sets
      when you are finished. *)
-   DictSet (C)
+   ListSet (C)
