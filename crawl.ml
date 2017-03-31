@@ -30,6 +30,26 @@ module PR = Pagerank ;;
    Keep crawling until we've reached the maximum number of links (n) or
    the frontier is empty.
  *)
+exception Crawler_Error of string;;
+
+let unwrap (op : 'a option) (erText : string) =
+  match op with
+  | None -> raise (Crawler_Error erText)
+  | Some x -> x;;
+
+let add_key_pairs (words : string list)
+                  (url : WT.LinkSet.elt)
+                  (dict : WT.LinkIndex.dict)
+                : WT.LinkIndex.dict =
+    List.fold_right
+      (fun w d->
+        let links = WT.LinkIndex.lookup dict w in
+        match links with
+        | None -> WT.LinkIndex.insert d w (WT.LinkSet.singleton url)
+        | Some s ->
+            let newS = WT.LinkSet.insert s url in
+            WT.LinkIndex.insert d w newS) words dict
+
 let crawl (n : int)
           (frontier : WT.LinkSet.set)
           (visited : WT.LinkSet.set)
@@ -55,7 +75,7 @@ let crawl (n : int)
         | None -> inner_crawl setRem (WT.LinkSet.insert vis link) dict count
         | Some {WT.url = url; links; words} ->
             inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
-            (Helper.add_key_pairs words url dict) (count + 1) in
+            (add_key_pairs words url dict) (count + 1) in
       inner_crawl frontier visited d 0;;
 
 
