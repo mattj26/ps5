@@ -351,6 +351,10 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       match look with
       | None -> false
       | Some lst -> List.mem e lst
+    let remove_return_list (lst : 'a list) : ('a * 'a list) =
+      match lst with
+      | [] -> raise (Empty_Set "Dict bucket empty")
+      | hd::tl -> (hd, tl);;
     let choose s =
       let look = D.choose s in
       match look with
@@ -359,7 +363,7 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           if List.length lst = 1
           then Some (List.hd lst, d)
           else
-            let ele, lstNew = Sethelper.remove_return_list lst in
+            let ele, lstNew = remove_return_list lst in
             Some (ele, D.insert d k lstNew)
     let fold f u s =
       D.fold (fun b _ vals -> List.fold_left f b vals) u s
