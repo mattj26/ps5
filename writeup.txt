@@ -1,0 +1,48 @@
+
+All times in msecs
+
+Timing results for "simple-html"
+  All pages crawled starting on "index.html"
+    DictSet: 3.976, 4.513, 4.010
+    ListSet: 3.779, 4.477, 5.448
+  Query of "functors":
+    DictSet: 0.000, 0.000, 0.000
+    ListSet: 0.000, 0.000, 0.000
+  Query of "functors and shieber":
+    DictSet: 0.000, 0.000, 0.000
+    ListSet: 0.000, 0.000, 0.000
+
+Timing results for "html"
+  All pages starting on "index.html"
+    Dictset: 412.468, 375.919, 383.654
+    ListSet: 398.299, 411.374, 399.779
+  Query of "functor":
+    DictSet: 0.00050, 0.00050, 0.00050
+    ListSet: 0.0, 0.00050, 0.00100
+  Query of "variable and function":
+    DictSet: 0.00401, 0.00050, 0.00113
+    ListSet: 0.00050, 0.0, 0.0
+
+Timing results for "wiki"
+  All pages staring on "NBC"
+    Dictset: 44227.658, 46923.355, 46783.539
+    ListSet: 1378002.694, 1258979.279, 1238117.519
+  Query of "earth":
+    DictSet: 0.00400, 0.00507, 0.00617
+    DictSet: 0.00652, 0.00451, 0.00800
+  Query of "earth and animal":
+    DictSet: 0.00150, 0.00100, 0.00100
+    ListSet: 0.00401, 0.00501, 0.00458
+
+Analysis: In general, working with a DictSet requires more different function
+calls than working with a ListSet (i.e. lookups, compares, etc). However,
+these different function calls allow the DictSet to work faster than the
+ListSet when working with larger sets, such as "wiki," as reflected in the
+numbers above. When working with very small sets, performance differences
+between the two types of sets are negligible, as shown in the numbers for
+"simple-html". When the set is of medium size, ListSet may be a bit faster
+than DictSet because it generally requires less function calls, as shown
+by the numbers for "html", but this performance benefit quickly reverses
+as the size of the set increases. It is clear that this applies for
+crawling operations. The same seems to be true for querying operations,
+although the effect size is much smaller.

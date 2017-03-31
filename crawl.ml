@@ -74,12 +74,15 @@ let crawl (n : int)
         match search with
         | None -> inner_crawl setRem (WT.LinkSet.insert vis link) dict count
         | Some {WT.url = url; links; words} ->
-            inner_crawl (WT.LinkSet.union setRem links) (WT.LinkSet.insert vis url)
+            inner_crawl (WT.LinkSet.union setRem links)
+            (WT.LinkSet.insert vis url)
             (add_key_pairs words url dict) (count + 1) in
       inner_crawl frontier visited d 0;;
 
 
 let crawler (num_pages_to_search : int) (initial_link : WT.link) =
+  (* One of the pages in "wiki" causes a stack overflow,
+     so increasing the max stack size prevents it. *)
   Gc.set { (Gc.get()) with Gc.stack_limit = 64 * 1024 * 1024};
   crawl num_pages_to_search
     (WT.LinkSet.singleton initial_link)

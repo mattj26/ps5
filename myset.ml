@@ -428,25 +428,22 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
           | 9 | 10 | 11 -> lst2, e :: lst3
           | _ -> e :: lst2, e :: lst3) lst1 ([], [])
 
-    (* Test functions for DictSet *)
+    (* Test functions for DictSet.
+       In addition to these test, the output of queries with ListSets and
+       DictSets was compared to ensure the same results. *)
 
     let test_is_empty () : unit =
       let emp = empty in
-      assert (is_empty emp);
-      tp "Test is empty passed"
+      assert (is_empty emp);;
 
     let test_insert (lst : elt list) : unit =
       let s1 = List.fold_right (fun ele s -> insert s ele) lst empty in
-      List.iter (fun e -> assert (member s1 e)) lst;
-      tp "Test insert passed"
+      List.iter (fun e -> assert (member s1 e)) lst;;
 
     let test_union (lst1 : elt list) (lst2 : elt list) : unit =
       let s1, s2 = set_from_list lst1, set_from_list lst2 in
       let s3 = union s1 s2 in
-      print_endline (string_of_set s1);
-      print_endline (string_of_set s2);
-      print_endline (string_of_set s3)
-
+      ignore s3;;
 
     let test_intersect () =
       let l1, l2 = overlapping_element_lists 12 in
@@ -502,11 +499,12 @@ module DictSet(C : COMPARABLE) : (SET with type elt = C.t) =
       test_is_empty ();
       test_insert (random_element_list 8);
       test_intersect ();
-      test_remove ();
       test_member ();
       test_choose ();
-      test_fold ()
-
+      (* Tested by visual inspection of printout *)
+      test_fold ();
+      test_remove ();
+      test_union (element_list_to 5) (element_list_to 10)
 
 end
 (*----------------------------------------------------------------------
@@ -540,4 +538,4 @@ let _ = IntDictSet.run_tests();;
 module Make (C : COMPARABLE) : (SET with type elt = C.t) =
   (* Change this line to use the dictionary implementation of sets
      when you are finished. *)
-   ListSet (C)
+   DictSet (C)
